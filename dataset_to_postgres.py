@@ -2,7 +2,8 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 # define engine and point to sandbox database
-engine = create_engine('postgresql://kellen@localhost:5432/sandbox')
+# ensure correct alignment of db username and password
+engine = create_engine('postgresql://kellen@localhost:5432/forestry_research')
 
 # create dataframe
 df = pd.read_csv()
