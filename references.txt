@@ -1,0 +1,5 @@
+tree cover loss = 
+https://data.globalforestwatch.org/documents/85caa1aa8de2422894f6c1f11ae1d524/explore
+
+TN plot, condition, and tree = 
+https://apps.fs.usda.gov/fia/datamart/datamart.html
