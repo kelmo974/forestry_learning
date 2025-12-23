@@ -1,8 +1,8 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
 .venv/
+.project_screenshots/
+data/
 .env
 .DS_Store
 __pycache__/
-data/
-ingest_test.ipynb
-project_screenshots/
+
