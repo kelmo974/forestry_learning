@@ -39,10 +39,10 @@
 -- JOIN raw_data.canopy_tiles r ON ST_Intersects(r.rast, p.geom);
 
 -- 2nd full revision after struggling with float vs string in tn_plot
-CREATE OR REPLACE VIEW raw_data.v_silver_forest_data AS
+CREATE OR REPLACE VIEW raw_data.v_cleaned_forest_data AS
 SELECT 
     p.cn AS plot_id,
-    p.invyr,
+    p.invyr::int,
     c.fortypcd,
     c.stdage as stand_age,
     t.spcd as species_code,
@@ -50,5 +50,5 @@ SELECT
     ST_Value(r.rast, p.geom) * 3.28084 AS sat_ht_ft
 FROM raw_data.tn_plot p
 JOIN raw_data.tn_cond c ON p.cn = c.plt_cn
-JOIN raw_data.tn_tree t ON c.plt_cn = t.plt_cn AND c.condid = t.condid
+JOIN raw_data.tn_tree t ON c.plt_cn = t.plt_cn::bigint AND c.condid = t.condid::int
 JOIN raw_data.canopy_tiles r ON ST_Intersects(r.rast, p.geom);

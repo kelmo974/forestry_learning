@@ -44,5 +44,26 @@
 -- ALTER TABLE raw_data.tn_plot 
 --   ALTER COLUMN cn TYPE BIGINT USING NULLIF(TRIM(cn::text), '')::numeric::bigint;
 
-SELECT * from raw_data.v_silver_forest_data
-where invyr >= 2015
+-- SELECT * from raw_data.v_silver_forest_data
+-- where invyr >= 2015
+
+-- select * from raw_data.species_list
+-- limit 20
+
+-- DROP TABLE raw_data.tn_cond;
+-- DROP TABLE raw_data.tn_plot;
+-- -- DROP TABLE raw_data.tn_tree;
+
+-- SELECT * FROM raw_data.tn_tree
+-- LIMIT 10
+
+-- convert lat & lon to spatial data by applying WGS84 projection 
+-- create new column in tn_plot for this
+ALTER TABLE raw_data.tn_plot 
+ADD COLUMN geom geometry(Point, 4326);
+-- lat and long get used in the raster PostGIS raster function
+UPDATE raw_data.tn_plot 
+SET geom = ST_SetSRID(ST_MakePoint(lon, lat), 4326)
+WHERE lon IS NOT NULL AND lat IS NOT NULL;
+-- index create so that this can be referenced by main query
+CREATE INDEX idx_tn_plot_geom ON raw_data.tn_plot USING GIST (geom);

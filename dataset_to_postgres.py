@@ -6,12 +6,12 @@ from sqlalchemy import create_engine
 engine = create_engine('postgresql://kellen@localhost:5432/forestry_research')
 
 # clean columns prior to load
-# makes all column names fully lower case and replaces any ' ' with '_'
+# makes all column names lowercase and replaces any ' ' with '_'
 def clean_columns(df):
     df.columns = df.columns.str.lower().str.replace(' ', '_', regex=False)
     return df
 
-# create dataframe by reading chunks 1000 rows at a time
+# create dataframe by reading chunks by 1000 rows
 def load_csv_to_raw(file_name, table_name):
     print(f"reading {file_name}...") 
 
@@ -38,9 +38,9 @@ if __name__ == "__main__":
     # this version, can avoid a lot of the SQL syntax issues with the above column cleaning function
     print("Approaching TREE table...")
 
-    first_chunk = True
+    is_first_tree_chunk = True
     for chunk in pd.read_csv('data/TN_TREE.csv', chunksize=10000, low_memory=False, dtype=str):
-        chunk = clean_columns(chunk)
+        chunk = clean_columns(chunk) # cleaning columns for this table too
 
         mode = 'replace' if is_first_tree_chunk else 'append'
         chunk.to_sql('tn_tree', engine, schema='raw_data', if_exists=mode, index=False)

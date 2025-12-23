@@ -2,11 +2,11 @@
 
 # Tennessee Forest Canopy Height: Spatial and Tabular ETL to Feed Machine Learning Model
 
-> **Project Goal:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling.
+> **Project Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling.
 
 ---
 
-## 📖 Project Overview
+## Overview
 
 This project addresses the gap between ground-level forestry inventory and high-resolution satellite height models. By joining thousands of tree-level measurements with spatial rasters, we are building a model to predict forest structure across the state of Tennessee. 
 
@@ -35,10 +35,11 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 
 ---
 
-## 🏗 Data Pipeline & Architecture
+## Data Pipeline & Architecture
 
 1. New database and schema to store all data created in PostgresSQL
 <p align='left'><img src='project_screenshots/database_creation.png' width='600' /></p>
+
 
 2. Source data downloaded from FIA and ETH web domains  
 [FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart)  
@@ -52,9 +53,25 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 4. Pandas used to drop and/or alter column names
 <p align='left'><img src='project_screenshots/drop_columns.png' width='600' /></p>
 
+
 5. SQLalchemy intializes the engine and connection for load of cleaned dataframes into database
-6. Terminal command used to import .tif files of LiDAR tile images into database
-7. PostGIS extension used to manipulate raster data and perform spatial joins on the four .tif tiles
+<p align='left'><img src='project_screenshots/sqlAlchemy_engine.png' width='600' /></p>
+
+<p align='left'><img src='project_screenshots/tn_tree_proof.png' width='600' /></p>
+
+
+6. Terminal command used to import 4 .tif files of LiDAR tile images into database as one unit - no spatial joins required
+<p align='left'><img src='project_screenshots/raster_terminal_command.png' width='600' /></p>
+
+
+7. PostGIS extension used to manipulate raster data and create index usable for querying 
+<p align='left'><img src='project_screenshots/raster_ext_install.png' width='600' /></p>
+
+<p align='left'><img src='project_screenshots/ postgis_raster_transform_coords.png' width='600' /></p>
+
+<p align='left'><img src='project_screenshots/index_geom.png' width='600' /></p>
+
+
 8. Joins and SQL logic used to create views ready for ML ingestion
 
 
