@@ -4,6 +4,8 @@ https://data.globalforestwatch.org/documents/85caa1aa8de2422894f6c1f11ae1d524/ex
 TN plot, condition, and tree = 
 https://apps.fs.usda.gov/fia/datamart/datamart.html
 
+species_code_reference_table = Record, Sydne (2021). REF_SPECIES.csv. figshare. Dataset. https://doi.org/10.6084/m9.figshare.14347007.v1
+
 
 climate.esri.ca (ETH Zurich canopy data)
 2020 Global vegetation height with a resolution of 10-m. Produced by EcoVision Lab in the ETH Zurich Department of Civil, Environmental and Geomatic Engineering.

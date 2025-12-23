@@ -1,19 +1,26 @@
 
 
-# 🌲 Tennessee Forest Canopy Height: ML & Spatial ETL
+# Tennessee Forest Canopy Height: Spatial and Tabular ETL to Feed Machine Learning Model
 
-> **Project Goal:** Aligning USFS FIA ground survey data with satellite canopy height rasters to create a robust, ML-ready dataset for biomass modeling.
+> **Project Goal:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling.
 
 ---
 
 ## 📖 Project Overview
 
-*Briefly describe the "Why" here. For example:*
-This project addresses the gap between ground-level forestry inventory and high-resolution satellite height models. By joining thousands of tree-level measurements with spatial rasters, we are building a model to predict forest structure across the state of Tennessee.
+This project addresses the gap between ground-level forestry inventory and high-resolution satellite height models. By joining thousands of tree-level measurements with spatial rasters, we are building a model to predict forest structure across the state of Tennessee. 
+
+Sourcing and storing the raw data was critical to provide a solid foundation prior to performing any type of analysis. A database was created in PostgresSQL to house this information.
+
+Tabular data was obtained from the Forest Inventory and Analysis DataMart provided by the U.S. Department of Agriculture. Information regarding the plot of land, condition of the land, and field surveys of trees were of particular interest to this query, so three applicable tables were downloaded from the FIA DataMart. A fourth table, containing the master list of tree species, would later be included from the same source. That raw data can be found here: [FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart)
+
+To make a comparrison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with our tabular data on Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
+
+The sourced data was cleaned using Python (Pandas) and imported to Postgres via a separate Python script built on SQLalchemy. 
 
 ---
 
-## 🛠 Tech Stack & Libraries
+##  Tech Stack & Libraries
 
 ### **Database & GIS**
 
@@ -22,16 +29,34 @@ This project addresses the gap between ground-level forestry inventory and high-
 
 ### **Python Libraries**
 
-* `pandas`: Data manipulation and Excel/CSV ingestion.
+* `pandas`: Data manipulation and ingestion of .csv/.xslx files
 * `sqlalchemy`: Postgres database connection and ETL.
-* `openpyxl`: Excel engine for reading master species lists.
 * `XGBoost` / `Scikit-Learn`: (Planned) For predictive modeling.
 
 ---
 
 ## 🏗 Data Pipeline & Architecture
 
-The data flows through three logical layers in our Postgres schema:
+1. New database and schema to store all data created in PostgresSQL
+<p align='left'><img src='project_screenshots/database_creation.png' width='600' /></p>
+
+2. Source data downloaded from FIA and ETH web domains  
+[FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart)  
+[ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
+
+
+3. Raw data files used to create dataframes in Pandas
+<p align='left'><img src='project_screenshots/csv_to_dataframe.png' width='600' /></p>
+
+
+4. Pandas used to drop and/or alter column names
+<p align='left'><img src='project_screenshots/drop_columns.png' width='600' /></p>
+
+5. SQLalchemy intializes the engine and connection for load of cleaned dataframes into database
+6. Terminal command used to import .tif files of LiDAR tile images into database
+7. PostGIS extension used to manipulate raster data and perform spatial joins on the four .tif tiles
+8. Joins and SQL logic used to create views ready for ML ingestion
+
 
 1. **Bronze (Raw):** Direct imports of `TN_PLOT`, `TN_TREE`, and `TN_COND` CSVs.
 
