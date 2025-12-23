@@ -35,7 +35,7 @@ The data flows through three logical layers in our Postgres schema:
 
 1. **Bronze (Raw):** Direct imports of `TN_PLOT`, `TN_TREE`, and `TN_COND` CSVs.
 
-<p align='left'><img src='project_screenshots/raw_tabular_in_postgres.png' width='500' /></p>
+<p align='left'><img src='project_screenshots/raw_tabular_in_postgres.png' width='600' /></p>
 
 2. **Silver (Cleaned):** Type-casted columns, geometry creation, and spatial indexing.
 3. **Gold (ML-Ready):** Final view joining trees to rasters with data quality flags.
