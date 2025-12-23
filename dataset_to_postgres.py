@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # ran into syntax errors on multiple columns in the tn_tree data. forcing SQL ingestion so that all three tables arrive in DB
     # early version, performed cleaning in SQL
     # this version, can avoid a lot of the SQL syntax issues with the above column cleaning function
-    print("Approaching TREE table...")
+    print("Approaching TN_TREE table...")
 
     is_first_tree_chunk = True
     for chunk in pd.read_csv('data/TN_TREE.csv', chunksize=10000, low_memory=False, dtype=str):
