@@ -2,7 +2,7 @@
 
 # Tennessee Forest Canopy Height: Spatial and Tabular ETL to Feed Machine Learning Model
 
-> **Project Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling.
+> **Project Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling. We want the model to identify potential beetle killoffs, storm damage, or even illegal deforestation.
 
 ---
 
@@ -16,7 +16,13 @@ Tabular data was obtained from the Forest Inventory and Analysis DataMart provid
 
 To make a comparrison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with our tabular data on Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
 
-The sourced data was cleaned using Python (Pandas) and imported to Postgres via a separate Python script built on SQLalchemy. 
+The sourced data was cleaned using Python (Pandas) and imported to Postgres via a separate Python script built on SQLalchemy.
+
+The raw data in PostgreSQL was then passed through Postgis extenstion so that raster data could be pinned to the existing tabular data. 
+
+With the remote sensing data now aligned with the field survey information, query logic was used to build a table that will fuel our machine learning algorithm. The key to doing this calculating an additional field that compares survey dates to raster imaging dates. This will enable the model to make decisions based on available parameters across time.
+
+
 
 ---
 
@@ -38,7 +44,7 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 ## Data Pipeline & Architecture
 
 1. New database and schema to store all data created in PostgresSQL
-<p align='left'><img src='project_screenshots/database_creation.png' width='600' /></p>
+<p align='left'><img src='project_screenshots/alter_db_query.png' width='600' /></p>
 
 
 2. Source data downloaded from FIA and ETH web domains  
@@ -65,23 +71,29 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 
 
 7. PostGIS extension used to manipulate raster data and create index usable for querying 
+
 <p align='left'><img src='project_screenshots/raster_ext_install.png' width='600' /></p>
 
 <p align='left'><img src='project_screenshots/ postgis_raster_transform_coords.png' width='600' /></p>
 
 <p align='left'><img src='project_screenshots/index_geom.png' width='600' /></p>
 
-8. Create ml_ready schema where only data to be used in the ML model will be stored
+8. Create machine learning schema where only data to be used in the ML model will be stored
+
+<p align='left'><img src='project_screenshots/drop_create_schemas.png' width='600' /></p>
 
 9. Joins and SQL logic used to create views ready for ML ingestion
 
-
+<p align='left'><img src='project_screenshots/ML_data_table_query.png' width='600' /></p>
 
 ### **Database Schema Preview**
+| Overview Schema | ML Ready Schema | Raw Data Schema |
+| :---: | :---: | :---: |
+| <img src="project_screenshots/schema_overview.png" width="300" /> | <img src="project_screenshots/ml_schema.png" width="300" /> | <img src="project_screenshots/raw_data_schema.png" width="300" /> |
 
 ---
 
-## 🚧 Roadblocks & Solutions
+## Roadblocks & Solutions
 
 | Roadblock | Resolution |
 | --- | --- |
@@ -94,23 +106,24 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 | could've investigated the NULL field_ht_ft values further...were they concentrated in one area or possibly for a certain species of tree? 
 | perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
 | some thoughts on pre-raster tabular data (2015-2019, sweetspot (2020), and post-raster 2021-2022)
+| something else I'd do differently; include actual names form the beginning. Making sense of the species codes was difficult. The task become a lot clearer once tree species names were mapped. 
 ---
 
 ## Data Quality Assurance
 
-Implemented a dynamic flagging system to ensure the ML model only trains on high-integrity data. This was done inside of  
-the case statement within the create_ML_ready_table query. It to be revised by adding a fourth case statement to handle the NULL
-values in 'field_ht_ft' that I found when checking the final output. The fourth case statement handling the field_ht_ft issue can be seen
-in the create_ML_ready_table.sql file included in this repository.
+Implemented a dynamic flagging system to ensure the ML model only trains on high-integrity data as well as classifiying records into "stable" or "disturbed". This distinction will be key to the ML model. Instead of looking at the vast majority of Tennessee trees and predicting height based on a regression model, it is more interesting to work with the would-be outliers in an attempt to identify areas that display significant disturbance. This was done inside of the case statement within the create_ML_ready_table query. 
 
-<p align='left'><img src='project_screenshots/QA_CASE_statement.png' width='600' /></p>
 
-I thought that perhaps these would be localized to a specific common area or 
-maybe belong to a particular species. No real pattern showed itself upon invesigation, 
-so I opted to drop these values from the ML-ready data.
+<p align='left'><img src='project_screenshots/disturbed_count.png' width='500' /></p>
 
-This was a critical catch as nearly 8% of all records in the ml_training_data_static table had a null  
-field height measurement value. This would've caused the ML model to error as models can't train on empty targets.
+
+While reviewing the output, I noticed a few thousand NULL values in field_ht_ft.  
+
+I thought that perhaps these would be localized to a specific area or 
+maybe belong to a particular species. Even with further investigation, no real pattern was became eveident. This could simply be representation in the dataset of how difficult
+collecting field data can be.
+
+This was a critical catch as nearly 8% of all records in the ml_training_data_static table had a null field height measurement value. This would've caused the ML model to error as models can't train on empty targets.
 
 <p align='left'><img src='project_screenshots/NULL_field_height_issue.png' width='500' /></p>
 
