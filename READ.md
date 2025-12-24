@@ -71,16 +71,11 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 
 <p align='left'><img src='project_screenshots/index_geom.png' width='600' /></p>
 
+8. Create ml_ready schema where only data to be used in the ML model will be stored
 
-8. Joins and SQL logic used to create views ready for ML ingestion
+9. Joins and SQL logic used to create views ready for ML ingestion
 
 
-1. **Bronze (Raw):** Direct imports of `TN_PLOT`, `TN_TREE`, and `TN_COND` CSVs.
-
-<p align='left'><img src='project_screenshots/raw_tabular_in_postgres.png' width='600' /></p>
-
-2. **Silver (Cleaned):** Type-casted columns, geometry creation, and spatial indexing.
-3. **Gold (ML-Ready):** Final view joining trees to rasters with data quality flags.
 
 ### **Database Schema Preview**
 
@@ -94,18 +89,31 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 | **Data Type Mismatches:** Integer columns containing strings like `"972.0"`. | Implemented a two-step casting process: `::numeric::int` to strip decimals during ETL. |
 | **Query Performance:** Spatial joins taking minutes to return only a few rows. | Created **GIST Spatial Indexes** on the plot geometries and raster convex hulls. |
 | **Temporal Discrepancy:** Comparing 1980s ground data to 2020 satellite imagery. | Filtered dataset for `invyr >= 2015` and added a QA flagging system. |
-
+| fought through a lot of datatypes conversions e.g. numeric vs integer, string vs numeric, etc. 
+| a data dictionary of sorts that simply guides users through the meaning/content of a given table or record would be handy
+| could've investigated the NULL field_ht_ft values further...were they concentrated in one area or possibly for a certain species of tree? 
+| perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
+| some thoughts on pre-raster tabular data (2015-2019, sweetspot (2020), and post-raster 2021-2022)
 ---
 
-## 📊 Quality Assurance (Bonus Task)
+## Data Quality Assurance
 
-We implemented a dynamic flagging system to ensure the ML model only trains on high-integrity data.
+Implemented a dynamic flagging system to ensure the ML model only trains on high-integrity data. This was done inside of  
+the case statement within the create_ML_ready_table query. It to be revised by adding a fourth case statement to handle the NULL
+values in 'field_ht_ft' that I found when checking the final output. The fourth case statement handling the field_ht_ft issue can be seen
+in the create_ML_ready_table.sql file included in this repository.
 
-* **EXCLUDE_NO_RASTER:** Plot falls outside satellite tile coverage.
-* **EXCLUDE_EXTREME_OUTLIER:** >70ft difference between ground and space (potential sensor noise).
-* **EXCLUDE_POTENTIAL_CHANGE:** Likely harvest detected between 2020 and 2025.
+<p align='left'><img src='project_screenshots/QA_CASE_statement.png' width='600' /></p>
 
-### **QA Flag Distribution**
+I thought that perhaps these would be localized to a specific common area or 
+maybe belong to a particular species. No real pattern showed itself upon invesigation, 
+so I opted to drop these values from the ML-ready data.
+
+This was a critical catch as nearly 8% of all records in the ml_training_data_static table had a null  
+field height measurement value. This would've caused the ML model to error as models can't train on empty targets.
+
+<p align='left'><img src='project_screenshots/NULL_field_height_issue.png' width='500' /></p>
+
 
 ---
 
