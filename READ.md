@@ -62,6 +62,7 @@ With the remote sensing data now aligned with the field survey information, quer
 ![Index Geom](project_screenshots/index_geom.png)
 
 8. **Create ML schema**
+
 ![Drop Create Schemas](project_screenshots/drop_create_schemas.png)
 
 9. **Joins and SQL logic for ML ingestion**
