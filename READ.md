@@ -100,7 +100,7 @@ Implemented a quality check that dynamically flags records to ensure the ML mode
 While reviewing the output, I noticed a several thousand NULL values in field_ht_ft.  
 
 I thought that perhaps these would be localized to a specific area or 
-maybe belong to a particular species. Even with further investigation, no real pattern was became eveident. This could simply be representation in the dataset of how difficult
+maybe belong to a particular species. Even with further investigation, no real pattern stood out. This could simply be representation in the dataset of how difficult
 collecting field data can be.
 
 This was a critical catch as nearly 8% of all records in the ml_training_data_static table had a null field height measurement value. This would've caused the ML model to error as models can't train on empty targets. 
