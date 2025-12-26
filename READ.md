@@ -65,7 +65,7 @@ With the remote sensing data aligned with the field survey information, query lo
 ![Drop Create Schemas](project_screenshots/drop_create_schemas.png)
 
 9. **Joins and SQL logic for ML ingestion**
-![ML Data Table Query](project_screenshots/ML_data_table_query.png)
+![ML Data Table Query](project_screenshots/create_ranked_ml_ready.png)
 
 ### **Database Schema Preview**
 | Overview Schema | ML Ready Schema | Raw Data Schema |
@@ -82,7 +82,8 @@ With the remote sensing data aligned with the field survey information, query lo
 | **Data Type Mismatches:** Integer columns containing numbers as strings like `"972.0"`. | Casted across datatypes on multiple fieldes process account for decimals during ETL. |
 | **Query Performance:** At first, joining the tabular and raster data caused the query to timeout before completion. | Created **GIST Spatial Indexes** on the plot geometries and so that it would no longer need to scan full table to find each row. |
 | **Time Discrepancies:** Comparing 1980 field survey data to 2020 satellite imagery. | Filtered dataset for `invyr >= 2015` and added a QA flagging system. |
-| **Species Code Meaning:** Attempting to work answer questions about the data proved was complicated by the species codes being only numeric. | Downloaded, cleaned, and integrated the species reference list to the schema. | 
+| **Species Code Meaning:** Attempting to answer questions about the data was complicated by the species codes being only numeric. | Downloaded, cleaned, and integrated the species reference list to the schema. | 
+| **Satellite Canopy Height vs Understory:** I became concered about the 'sat_ht_ft' value being applied to such a wide number of trees in a given plot. Upon investigating, it sounds like a common issue when relying on 10-m LiDAR resolution in forestry research. Telling the ML model that a slew of trees measured at 15 feet in the field produced a satellite height measuremnt of 70 feet is liable to confuse the model as these are more or less false positives. | Made the executive decision to rank tree height within each plot. This shrinks the total record count dramaticallly - from approximately 340k records to just over 10,000. I'd rather feed the model meaningful, high-value data than overwhelm it with noise. | 
 
 * a data dictionary of sorts that simply guides users through the meaning/content of a given table or record would be handy |
 * perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
@@ -92,7 +93,9 @@ With the remote sensing data aligned with the field survey information, query lo
 
 ## Data Quality Assurance
 
-Implemented a quality check that dynamically flags records to ensure the ML model only trains on high-integrity data as well as classifiying those records into "stable" or "disturbed". This distinction will be key to the ML model. Instead of looking at the vast majority of Tennessee trees and predicting height based on a regression model, it is more interesting to work with the would-be outliers in an attempt to identify areas that display significant disturbance. This was done inside of the case statement within the create_ML_ready_table query. 
+This analysis encounted a crossroads of sorts when it came time to decide whether or not it would be worth injecting every individual tree surveyed in a given plot or to keying on the taller (or tallest) trees that would've been registed in the remote sensing data. The SQL was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparisson of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
+
+To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model only trains on high-integrity data as well as classifiying those records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that logged data.
 
 ![Disturbed Count](project_screenshots/disturbed_count.png)
 
