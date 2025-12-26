@@ -6,20 +6,19 @@
 
 ## Overview
 
-This project addresses the gap between ground-level forestry inventory and high-resolution satellite height models. By joining thousands of tree-level measurements with spatial rasters, we are building a model to predict forest structure across the state of Tennessee. 
+This project addresses the gap between ground-level forestry inventory and satellite canopy height models. By joining thousands of tree measurements captured in the field with with spatial rasters, we can build a model to predict forest structure across the state of Tennessee. 
 
 Sourcing and storing the raw data was critical to provide a solid foundation prior to performing any type of analysis. A database was created in PostgresSQL to house this information.
 
 Tabular data was obtained from the Forest Inventory and Analysis DataMart provided by the U.S. Department of Agriculture. Information regarding the plot of land, condition of the land, and field surveys of trees were of particular interest to this query, so three applicable tables were downloaded from the FIA DataMart. A fourth table, containing the master list of tree species, would later be included from the same source. That raw data can be found here: [FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart)
 
-To make a comparrison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with our tabular data on Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
+To make a comparrison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with the tabular data from Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
 
 The sourced data was cleaned using Python (Pandas) and imported to Postgres via a separate Python script built on SQLalchemy.
 
-The raw data in PostgreSQL was then passed through Postgis extenstion so that raster data could be pinned to the existing tabular data. 
+The raw data in PostgreSQL was then passed through Postgis extenstion fucntions so that raster data could be pinned to the existing tabular data. 
 
-With the remote sensing data now aligned with the field survey information, query logic was used to build a table that will fuel our machine learning algorithm. The key to doing this calculating an additional field that compares survey dates to raster imaging dates. This will enable the model to make decisions based on available parameters across time.
-
+With the remote sensing data aligned with the field survey information, query logic was used to build a table that fuels a machine learning model. The key to doing this was calculating an additional field that compares survey dates to raster imaging dates. This will enable the model to make decisions based on available parameters across time.
 ---
 
 ## Tech Stack & Libraries
