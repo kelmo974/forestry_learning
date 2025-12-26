@@ -22,6 +22,8 @@ With the remote sensing data aligned with the field survey information, query lo
 
 A final SQL output titled ml_training_data_dominant containing over 10,000 meaningful records engineered to fuel model features was ingested back into a python environment. 
 
+Performed some light exploratory data analysis just to see if any basic trends were evident. Created a bar chart showing which species had the highest count of 'disturbed' classification. Created a box chart to make sure that filtering for survey data greater than or equal to 2015 was correct under both 'stable' and disturbed categories.
+
 Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_training_data_dominant.
 ---
 
@@ -61,15 +63,26 @@ Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_trai
 
 7. **PostGIS extension and indexing**
 ![Raster Ext Install](project_screenshots/raster_ext_install.png)
-![PostGIS Raster Transform](project_screenshots/ postgis_raster_transform_coords.png)
+![PostGIS Raster Transform](project_screenshots/postgis_raster_transform_coords.png)
 ![Index Geom](project_screenshots/index_geom.png)
 
 8. **Create ML schema**
 
 ![Drop Create Schemas](project_screenshots/drop_create_schemas.png)
 
-9. **Joins and SQL logic for ML ingestion**
+9. **Joins and SQL logic for ML table creation**
+
 ![ML Data Table Query](project_screenshots/create_ranked_ml_ready.png)
+
+10. **Reconnect to PostgreSQL to ingest ML-ready data**
+
+![ML Data Table Query](project_screenshots/create_ranked_ml_ready.png)
+
+11. **EDA for proof of concept prior to ML run**
+
+| Species Count | Time Gap Analysis |
+| :---: | :---: |
+| <img src="project_screenshots/disturbed_species_cnt.png" width="400" height="250" />|<img src="project_screenshots/time_gap.png" width="400" height="250" /> |
 
 ### **Database Schema Preview**
 | Overview Schema | ML Ready Schema | Raw Data Schema |
@@ -128,7 +141,7 @@ It was also necessary to give the model a bit of context for the passsage of tim
 2. Significance:
 
 3. Room for improvement:
-Noticed some common_tree name values with spaces or different joining characters. The species refernce listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
+Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
 
 
 

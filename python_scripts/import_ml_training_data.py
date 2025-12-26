@@ -1,5 +1,5 @@
-
-# # libraries for ingestion of ML training data
+# %%
+# libraries for ingestion of ML training data
 import os
 import pandas as pd
 from sqlalchemy import create_engine
@@ -29,3 +29,22 @@ file_path = os.path.join(output_dir, 'ml_training_data_dominant.csv')
 df.to_csv(file_path, index=False)
 
 print("File was successfully written to subdirectory.")
+
+df.head()
+# %%
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# which species get hit the hardest?
+plt.figure(figsize=(12,6))
+sns.barplot(data=df, x='common_name', y='is_disturbed', estimator=sum)
+plt.xticks(rotation=90)
+plt.title("Total Disturbance Counts by Species")
+plt.show()
+
+# how much will survey year impact model decisions?
+plt.figure(figsize=(10,5))
+sns.boxplot(data=df, x='is_disturbed', y='years_from_raster')
+plt.title("Temporal Gap vs. Disturbance Label")
+plt.show()
+# %%
