@@ -18,7 +18,11 @@ The sourced data was cleaned using Python (Pandas) and imported to Postgres via 
 
 The raw data in PostgreSQL was then passed through Postgis extenstion fucntions so that raster data could be pinned to the existing tabular data. 
 
-With the remote sensing data aligned with the field survey information, query logic was used to build a table that fuels a machine learning model. The key to doing this was calculating an additional field that compares survey dates to raster imaging dates. This will enable the model to make decisions based on available parameters across time.
+With the remote sensing data aligned with the field survey information, query logic was used to build a table that fuels a machine learning model. The key to doing this was calculating an additional field that compares survey dates to raster imaging dates. This will enable the model to make decisions based on available parameters across time. 
+
+A final SQL output titled ml_training_data_dominant containing over 10,000 meaningful records engineered to fuel model features was ingested back into a python environment. 
+
+Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_training_data_dominant.
 ---
 
 ## Tech Stack & Libraries
@@ -84,6 +88,8 @@ With the remote sensing data aligned with the field survey information, query lo
 | **Time Discrepancies:** Comparing 1980 field survey data to 2020 satellite imagery. | Filtered dataset for `invyr >= 2015` and added a QA flagging system. |
 | **Species Code Meaning:** Attempting to answer questions about the data was complicated by the species codes being only numeric. | Downloaded, cleaned, and integrated the species reference list to the schema. | 
 | **Satellite Canopy Height vs Understory:** I became concered about the 'sat_ht_ft' value being applied to such a wide number of trees in a given plot. Upon investigating, it sounds like a common issue when relying on 10-m LiDAR resolution in forestry research. Telling the ML model that a slew of trees measured at 15 feet in the field produced a satellite height measuremnt of 70 feet is liable to confuse the model as these are more or less false positives. | Made the executive decision to rank tree height within each plot. This shrinks the total record count dramaticallly - from approximately 340k records to just over 10,000. I'd rather feed the model meaningful, high-value data than overwhelm it with noise. | 
+| **Give the Model a Sense of Time:** | The raw data includes snapshots in time by displaying the field survey year and we know that that raster data came from 2020. This isn't enough for a machine learning model to consider the passage of time in its decision tree. | Calculated an additional column that outputs the number of years on either side of the remote sensing that the field survey was conducted. |
+
 
 * a data dictionary of sorts that simply guides users through the meaning/content of a given table or record would be handy |
 * perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
@@ -93,13 +99,7 @@ With the remote sensing data aligned with the field survey information, query lo
 
 ## Data Quality Assurance
 
-This analysis encounted a crossroads of sorts when it came time to decide whether or not it would be worth injecting every individual tree surveyed in a given plot or to keying on the taller (or tallest) trees that would've been registed in the remote sensing data. The SQL was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparisson of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
-
-To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model only trains on high-integrity data as well as classifiying those records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that logged data.
-
-![Disturbed Count](project_screenshots/disturbed_count.png)
-
-While reviewing the output, I noticed a several thousand NULL values in field_ht_ft.  
+While reviewing the intitial output, I noticed a several thousand NULL values in field_ht_ft.  
 
 I thought that perhaps these would be localized to a specific area or 
 maybe belong to a particular species. Even with further investigation, no real pattern stood out. This could simply be representation in the dataset of how difficult
@@ -108,6 +108,29 @@ collecting field data can be.
 This was a critical catch as nearly 8% of all records in the ml_training_data_static table had a null field height measurement value. This would've caused the ML model to error as models can't train on empty targets. 
 
 ![NULL Field Height Issue](project_screenshots/NULL_field_height_issue.png)
+
+This analysis encounted a crossroads of sorts when it came time to decide if it would be worth injecting every individual tree surveyed in a given plot or whether to key only on the taller (or tallest) trees that would've been registed in the remote sensing data. The SQL lgoic was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparisson of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
+
+To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model only trains on high-integrity data as well as classifiying those records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that logged data.
+
+![Disturbed Count](project_screenshots/disturbed_count.png)
+
+It was also necessary to give the model a bit of context for the passsage of time. This could be described as feature engineering in a data science role. The output table does have the survey year included. However, without a calculation of that value with respect to the year in which the raster data was compiled, the model wouldn't know to use time as as part of its prediction. This is a key ingredient to the whole process.
+
+![Years Until or Since LiDAR Imaging](project_screenshots/years_from_raster.png)
+
+---
+
+## Conclusion
+
+1. Findings:
+
+2. Significance:
+
+3. Room for improvement:
+Noticed some common_tree name values with spaces or different joining characters. The species refernce listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
+
+
 
 ---
 
