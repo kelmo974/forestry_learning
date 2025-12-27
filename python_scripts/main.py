@@ -37,12 +37,12 @@ print(f"{len(df)} records have been successfully imported from Postgres.")
 # plt.title("Temporal Gap vs. Disturbance Label")
 # plt.show()
 
-# calculating risk before splitting to ensure all species are captured
+# encoding species names before splitting to ensure all species again have numeric value
 species_map = df.groupby('common_name')['is_disturbed'].mean()
-df['species_risk'] = df['common_name'].map(species_map)
+df['species_target_encoded'] = df['common_name'].map(species_map)
 
 
-# dropping id values and columns that wold confused the model
+# dropping ID values and columns that would confuse model
 # pointing y at 'is_disturbed'
 X = df.drop(columns=['plot_id', 'is_disturbed', 'survey_year', 'common_name'])
 y = df['is_disturbed']

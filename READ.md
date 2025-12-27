@@ -43,47 +43,118 @@ Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_trai
 
 ## Data Pipeline & Architecture
 
-1. **New database and schema created in PostgresSQL**
-![Alter DB Query](project_screenshots/alter_db_query.png)
+<p align="left">
+  <h3>1. New database and schema created in PostgreSQL</h3>
+  <img src="project_screenshots/alter_db_query.png" width="70%" />
+</p>
 
-2. **Source data downloaded from FIA and ETH domains**
-[FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart) | [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
+<p align="left">
+  <h3>2. Source data downloaded from FIA and ETH domains</h3>
+  <ul>
+    <li><a href="https://research.fs.usda.gov/products/dataandtools/fia-datamart">FIA DataMart</a></li>
+    <li><a href="https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html">ETH Zurich</a></li>
+  </ul>
+</p>
 
-3. **Raw data files used to create dataframes in Pandas**
-![CSV to Dataframe](project_screenshots/csv_to_dataframe.png)
+<p align="left">
+  <h3>3. Raw data files used to create dataframes in Pandas</h3>
+  <img src="project_screenshots/csv_to_dataframe.png" width="70%" />
+</p>
 
-4. **Pandas used to drop and/or alter column names**
-![Drop Columns](project_screenshots/drop_columns.png)
+<p align="left">
+  <h3>4. Pandas used to drop and/or alter column names</h3>
+  <img src="project_screenshots/drop_columns.png" width="70%" />
+</p>
 
-5. **SQLalchemy initializes the engine and loads the dataset**
-![SQLAlchemy Engine](project_screenshots/sqlAlchemy_engine.png)
-![TN Tree Proof](project_screenshots/tn_tree_proof.png)
+<p align="left">
+  <h3>5. SQLalchemy initializes the engine and loads the dataset</h3>
+  <img src="project_screenshots/sqlAlchemy_engine.png" width="70%" /><br><br>
+  <img src="project_screenshots/tn_tree_proof.png" width="70%" />
+</p>
 
-6. **Terminal command used to import 4 .tif files**
-![Raster Import](project_screenshots/raster_terminal_command.png)
+<p align="left">
+  <h3>6. Terminal command used to import all .tif files</h3>
+  <img src="project_screenshots/raster_terminal_command.png" width="70%" />
+</p>
 
-7. **PostGIS extension and indexing**
-![Raster Ext Install](project_screenshots/raster_ext_install.png)
-![PostGIS Raster Transform](project_screenshots/postgis_raster_transform_coords.png)
-![Index Geom](project_screenshots/index_geom.png)
+<p align="left">
+  <h3>7. PostGIS extension and indexing</h3>
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr style="border: none;">
+      <th style="text-align: center; border: none;">Raster-specific Extension</th>
+      <th style="text-align: center; border: none;">Transform Raster</th>
+      <th style="text-align: center; border: none;">Index Geometry</th>
+    </tr>
+    <tr style="border: none;">
+      <td style="width: 33%; border: none;"><img src="project_screenshots/raster_ext_install.png" style="width: 100%;" /></td>
+      <td style="width: 33%; border: none;"><img src="project_screenshots/postGIS_raster_transform.png" style="width: 100%;" /></td>
+      <td style="width: 33%; border: none;"><img src="project_screenshots/index_geom.png" style="width: 100%;" /></td>
+    </tr>
+  </table>
+</p>
 
-8. **Create ML schema**
+<p align="left">
+  <h3>8. Create ML schema</h3>
+  <img src="project_screenshots/drop_create_schemas.png" width="70%" />
+</p>
 
-![Drop Create Schemas](project_screenshots/drop_create_schemas.png)
+<p align="left">
+  <h3>9. Joins and SQL logic for ML table creation</h3>
+  <img src="project_screenshots/create_ranked_ml_ready.png" width="70%" />
+</p>
 
-9. **Joins and SQL logic for ML table creation**
 
-![ML Data Table Query](project_screenshots/create_ranked_ml_ready.png)
+<p align="left">
+  <h3>10. Reconnect to PostgrSQL for ML Table Ingestion</h3>
+  <img src="project_screenshots/ml_data_ingestion.png" width="70%" />
+  <img src="project_screenshots/ingestion_terminal_proof.png" width="70%" />
+</p>
 
-10. **Reconnect to PostgreSQL to ingest ML-ready data**
+<p align="left">
+  <h3>11. EDA for proof of concept prior to ML run</h3>
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr style="border: none;">
+      <th style="text-align: center; border: none;">Species Count</th>
+      <th style="text-align: center; border: none;">Time Gap Analysis</th>
+    </tr>
+    <tr style="border: none;">
+      <td style="width: 50%; border: none;">
+        <img src="project_screenshots/disturbed_species_cnt.png" style="width: 100%;" />
+      </td>
+      <td style="width: 50%; border: none;">
+        <img src="project_screenshots/time_gap.png" style="width: 100%;" />
+      </td>
+    </tr>
+  </table>
+</p>
 
-![ML Data Table Query](project_screenshots/create_ranked_ml_ready.png)
+<p align="left">
+  <h3>12. XGBoost model initialization and training</h3>
+  <img src="project_screenshots/ML_meat.png" width="70%" />
+</p>
 
-11. **EDA for proof of concept prior to ML run**
+<p align="left">
+  <h3>13. Model run and rerformance</h3>
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr style="border: none;">
+      <th style="text-align: center; border: none;">Meat of model</th>
+      <th style="text-align: center; border: none;">Performance stats</th>
+    </tr>
+    <tr style="border: none;">
+      <td style="width: 50%; border: none;">
+        <img src="project_screenshots/ML_meat.png" style="width: 100%;" />
+      </td>
+      <td style="width: 50%; border: none;">
+        <img src="project_screenshots/model_performance.png" style="width: 100%;" />
+      </td>
+    </tr>
+  </table>
+</p>
 
-| Species Count | Time Gap Analysis |
-| :---: | :---: |
-| <img src="project_screenshots/disturbed_species_cnt.png" width="400" height="250" />|<img src="project_screenshots/time_gap.png" width="400" height="250" /> |
+<p align="left">
+  <h3>14. Results</h3>
+  <img src="project_screenshots/model_results.png" width="70%" />
+</p>
 
 ### **Database Schema Preview**
 | Overview Schema | ML Ready Schema | Raw Data Schema |
