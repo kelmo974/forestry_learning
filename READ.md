@@ -12,7 +12,7 @@ Sourcing and storing the raw data was critical to provide a solid foundation pri
 
 Tabular data was obtained from the Forest Inventory and Analysis DataMart provided by the U.S. Department of Agriculture. Information regarding the plot of land, condition of the land, and field surveys of trees were of particular interest to this query, so three applicable tables were downloaded from the FIA DataMart. A fourth table, containing the master list of tree species, would later be included from the same source. That raw data can be found here: [FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart)
 
-To make a comparrison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with the tabular data from Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
+To make a comparison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with the tabular data from Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
 
 The sourced data was cleaned using Python (Pandas) and imported to Postgres via a separate Python script built on SQLalchemy.
 
@@ -24,7 +24,11 @@ A final SQL output titled ml_training_data_dominant containing over 10,000 meani
 
 Performed some light exploratory data analysis just to see if any basic trends were evident. Created a bar chart showing which species had the highest count of 'disturbed' classification. Created a box chart to make sure that filtering for survey data greater than or equal to 2015 was correct under both 'stable' and disturbed categories.
 
-Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_training_data_dominant.
+Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_training_data_dominant. The common_names of species was shifted to a target encoded variable. This isn't as reliable as adding a factor like species risk, based on known susceptibility of different tree species to various disturbances. This was a crucial step though, as training on strings is not possible in XGboost. Model execution was successful. A confusion matrix as well as the general confidence performance metrics like precision, recall, and an f-1 score were catalogued. 
+
+The script also succeeded in saving a backup of the SQL table ingested to feed the model. 
+
+To move this from a blackbox script into more of an actionable product, an audit list was generated and also saved into the /data folder. This .csv contains the plot_id values of false positives for disturbed records that the model was able to identify. 
 ---
 
 ## Tech Stack & Libraries
@@ -192,9 +196,12 @@ collecting field data can be.
 
 This was a critical catch as nearly 8% of all records in the ml_training_data_static table had a null field height measurement value. This would've caused the ML model to error as models can't train on empty targets. 
 
-![NULL Field Height Issue](project_screenshots/NULL_field_height_issue.png)
+<p align="left">
+  <h3>NULL Field Height Issue</h3>
+  <img src="project_screenshots/NULL_field_height_issue.png" width="70%" />
+</p>
 
-This analysis encounted a crossroads of sorts when it came time to decide if it would be worth injecting every individual tree surveyed in a given plot or whether to key only on the taller (or tallest) trees that would've been registed in the remote sensing data. The SQL lgoic was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparisson of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
+This analysis encounted a crossroads of sorts when it came time to decide if it would be worth injecting every individual tree surveyed in a given plot or whether to key only on the taller (or tallest) trees that would've been registed in the remote sensing data. The SQL lgoic was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
 
 To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model only trains on high-integrity data as well as classifiying those records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that logged data.
 
@@ -208,12 +215,12 @@ It was also necessary to give the model a bit of context for the passsage of tim
 
 ## Conclusion
 
-1. Findings:
+1. Findings: Eight false positives generated from the model execution. Precisions of .97, recall .98, f-1 score 0f .98. sat_ht_ft field identified as most important feature to the model
 
-2. Significance:
+2. Significance: The false positives no placed into a quasi-audit file provide the forestry team with cause to further investigate those specific areas. It's possible that this list captures hyper localized storms, illegal deforestation, or some unknown pest that toppled trees.
 
 3. Room for improvement:
-Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
+Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. The model succeeded to a high degree in what it set out to do considering the parameters it was fed. It would be interesting to include some other basics such as elevation and slope to see how they affect the predictions. A true risk factor feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. 
 
 
 
