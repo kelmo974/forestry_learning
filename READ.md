@@ -138,7 +138,7 @@ To move this from a blackbox script into more of an actionable product, an audit
 </p>
 
 <p align="left">
-  <h3>13. Model run and rerformance</h3>
+  <h3>13. Model run and performance</h3>
   <table style="width: 100%; border-collapse: collapse;">
     <tr style="border: none;">
       <th style="text-align: center; border: none;">Meat of model</th>
@@ -156,8 +156,13 @@ To move this from a blackbox script into more of an actionable product, an audit
 </p>
 
 <p align="left">
-  <h3>14. Results</h3>
+  <h3>14. Importance of features to the model</h3>
   <img src="project_screenshots/model_results.png" width="70%" />
+</p>
+
+<p align="left">
+  <h3>15. Actionable list of false positives</h3>
+  <img src="project_screenshots/false_positive_audit.png" width="70%" />
 </p>
 
 ### **Database Schema Preview**
@@ -201,16 +206,21 @@ This was a critical catch as nearly 8% of all records in the ml_training_data_st
   <img src="project_screenshots/NULL_field_height_issue.png" width="70%" />
 </p>
 
-This analysis encounted a crossroads of sorts when it came time to decide if it would be worth injecting every individual tree surveyed in a given plot or whether to key only on the taller (or tallest) trees that would've been registed in the remote sensing data. The SQL lgoic was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
+This analysis encountered a crossroads of sorts when it came time to decide if it would be worth injecting every individual tree surveyed in a given plot or whether to key only on the taller (or tallest) trees that would've been captured in the remote sensing data. The SQL lgoic was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
 
 To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model only trains on high-integrity data as well as classifiying those records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that logged data.
 
-![Disturbed Count](project_screenshots/disturbed_count.png)
+<p align="left">
+  <h3>Disturbed Count</h3>
+  <img src="project_screenshots/disturbed_count.png" width="70%" />
+</p>
 
 It was also necessary to give the model a bit of context for the passsage of time. This could be described as feature engineering in a data science role. The output table does have the survey year included. However, without a calculation of that value with respect to the year in which the raster data was compiled, the model wouldn't know to use time as as part of its prediction. This is a key ingredient to the whole process.
 
-![Years Until or Since LiDAR Imaging](project_screenshots/years_from_raster.png)
-
+<p align="left">
+  <h3>Years Until or Since LiDAR Imaging</h3>
+  <img src="project_screenshots/years_from_raster.png" width="70%" />
+</p>
 ---
 
 ## Conclusion
@@ -220,7 +230,7 @@ It was also necessary to give the model a bit of context for the passsage of tim
 2. Significance: The false positives no placed into a quasi-audit file provide the forestry team with cause to further investigate those specific areas. It's possible that this list captures hyper localized storms, illegal deforestation, or some unknown pest that toppled trees.
 
 3. Room for improvement:
-Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. The model succeeded to a high degree in what it set out to do considering the parameters it was fed. It would be interesting to include some other basics such as elevation and slope to see how they affect the predictions. A true risk factor feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. 
+Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. The model succeeded to a high degree in what it set out to do considering the parameters it was fed. It would be interesting to include some other basics such as elevation and slope to see how they affect the predictions. A true risk factor feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd like to work with spectral signatures someday. It stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. 
 
 
 
