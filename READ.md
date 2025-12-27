@@ -36,7 +36,8 @@ Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_trai
 ### **Python Libraries**
 * `pandas`: Data manipulation and ingestion of .csv/.xslx files
 * `sqlalchemy`: Postgres database connection and ETL.
-* `XGBoost` / `Scikit-Learn`: For predictive modeling.
+* `XGBoost` / `Scikit-Learn`: Predictive modeling
+* `matplotlib` / `seaborn` : EDA and vizualization tools.
 
 ---
 

@@ -47,4 +47,3 @@ plt.figure(figsize=(10,5))
 sns.boxplot(data=df, x='is_disturbed', y='years_from_raster')
 plt.title("Temporal Gap vs. Disturbance Label")
 plt.show()
-# %%
