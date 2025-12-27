@@ -24,17 +24,6 @@ df = pd.read_sql(query, engine)
 print(f"{len(df)} records have been successfully imported from Postgres.")
 
 
-# # additional logic to save ingested df as .csv to /data directory of this project
-# output_dir = './data'
-# if not os.path.exists(output_dir):
-#     os.mkdir(output_dir)
-
-# file_path = os.path.join(output_dir, 'ml_training_data_dominant.csv')
-# df.to_csv(file_path, index=False)
-
-# print("File was successfully written to subdirectory.")
-
-
 # # which species get hit the hardest?
 # plt.figure(figsize=(12,6))
 # sns.barplot(data=df, x='common_name', y='is_disturbed', estimator=sum)
@@ -47,7 +36,6 @@ print(f"{len(df)} records have been successfully imported from Postgres.")
 # sns.boxplot(data=df, x='is_disturbed', y='years_from_raster')
 # plt.title("Temporal Gap vs. Disturbance Label")
 # plt.show()
-
 
 # calculating risk before splitting to ensure all species are captured
 species_map = df.groupby('common_name')['is_disturbed'].mean()
@@ -69,7 +57,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 # setting scale_pos_weight based on count_disturbed/count_stable = 7.3
 model = XGBClassifier(
     n_estimators=200,      # how many trees total in the model
-    max_depth=5,           # how many decisions the model's trees can make
+    max_depth=5,           # how many decisions each tree is allowed
     learning_rate=0.05,
     scale_pos_weight=7.3,  # weights the disturbed records heavier than stable
     random_state=42,
