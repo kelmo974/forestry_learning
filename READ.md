@@ -182,11 +182,11 @@ To move this from a blackbox script into more of an actionable product, an audit
 | **Time Discrepancies:** Comparing 1980 field survey data to 2020 satellite imagery. | Filtered dataset for `invyr >= 2015` and added a QA flagging system. |
 | **Species Code Meaning:** Attempting to answer questions about the data was complicated by the species codes being only numeric. | Downloaded, cleaned, and integrated the species reference list to the schema. | 
 | **Satellite Canopy Height vs Understory:** I became concered about the 'sat_ht_ft' value being applied to such a wide number of trees in a given plot. Upon investigating, it sounds like a common issue when relying on 10-m LiDAR resolution in forestry research. Telling the ML model that a slew of trees measured at 15 feet in the field produced a satellite height measuremnt of 70 feet is liable to confuse the model as these are more or less false positives. | Made the executive decision to rank tree height within each plot. This shrinks the total record count dramaticallly - from approximately 340k records to just over 10,000. I'd rather feed the model meaningful, high-value data than overwhelm it with noise. | 
-| **Give the Model a Sense of Time:** | The raw data includes snapshots in time by displaying the field survey year and we know that that raster data came from 2020. This isn't enough for a machine learning model to consider the passage of time in its decision tree. | Calculated an additional column that outputs the number of years on either side of the remote sensing that the field survey was conducted. |
+| **Give the Model a Sense of Time:** The raw data includes snapshots in time by displaying the field survey year and we know that the raster data came from 2020. This isn't enough for a machine learning model to consider the passage of time in its decision tree. | Calculated an additional column that outputs the number of years on either side of the remote sensing that the field survey was conducted. |
 
 
 * a data dictionary of sorts that simply guides users through the meaning/content of a given table or record would be handy |
-* perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
+
 * some thoughts on pre-raster tabular data (2015-2019, sweetspot (2020), and post-raster 2021-2022)
 
 ---
@@ -230,7 +230,7 @@ It was also necessary to give the model a bit of context for the passsage of tim
 2. Significance: The false positives no placed into a quasi-audit file provide the forestry team with cause to further investigate those specific areas. It's possible that this list captures hyper localized storms, illegal deforestation, or some unknown pest that toppled trees.
 
 3. Room for improvement:
-Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. The model succeeded to a high degree in what it set out to do considering the parameters it was fed. It would be interesting to include some other basics such as elevation and slope to see how they affect the predictions. A true risk factor feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd like to work with spectral signatures someday. It stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. 
+Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. The model succeeded to a high degree in what it set out to do considering the parameters it was fed. It would be interesting to include some other basics such as elevation and slope to see how they affect the predictions. A true risk factor feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd like to work with spectral signatures someday. It stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. Perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
 
 
 
