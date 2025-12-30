@@ -8,27 +8,15 @@
 
 This project addresses the gap between ground-level forestry inventory and satellite canopy height models. By joining thousands of tree measurements captured in the field with spatial rasters, we can build a model to predict forest structure across the state of Tennessee. 
 
-Sourcing and storing the raw data was critical to provide a solid foundation prior to performing any type of analysis. A database was created in PostgresSQL to house this information.
-
 Tabular data was obtained from the Forest Inventory and Analysis DataMart provided by the U.S. Department of Agriculture. Information regarding the plot of land, condition of the land, and field surveys of trees were of particular interest to this query, so three applicable tables were downloaded from the FIA DataMart. A fourth table, containing the master list of tree species, would later be included from the same source. That raw data can be found here: [FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart)
 
 To make a comparison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with the tabular data from Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
 
-The sourced data was cleaned using Python (Pandas) and imported to Postgres via a separate Python script built on SQLalchemy.
+The Data Pipeline & Architecture section found below offers a detailed recount of the steps used to clearn and store raw data, transform it into a model-ready format, design of the machine learning model, and analysis of the model's results. 
 
-The raw data in PostgreSQL was then passed through Postgis extenstion fucntions so that raster data could be pinned to the existing tabular data. 
+An actionable audit list of `plot_id` values associated with false positives was stored automatically by the script.
 
-With the remote sensing data aligned with the field survey information, query logic was used to build a table that fuels a machine learning model. The key to doing this was calculating an additional field that compares survey dates to raster imaging dates. This will enable the model to make decisions based on available parameters across time. 
 
-A final SQL output titled ml_training_data_dominant containing over 10,000 meaningful records engineered to fuel model features was ingested back into a python environment. 
-
-Performed some light exploratory data analysis just to see if any basic trends were evident. Created a bar chart showing which species had the highest count of 'disturbed' classification. Created a box chart to make sure that filtering for survey data greater than or equal to 2015 was correct under both 'stable' and disturbed categories.
-
-Leaning on XGBoost and Scikit learn, a model was designed and trained on ml_training_data_dominant. The common_names of species was shifted to a target encoded variable. This isn't as reliable as adding a factor like species risk, based on known susceptibility of different tree species to various disturbances. This was a crucial step though, as training on strings is not possible in XGboost. Model execution was successful. A confusion matrix as well as the general confidence performance metrics like precision, recall, and an f-1 score were catalogued. 
-
-The script also succeeded in saving a backup of the SQL table ingested to feed the model. 
-
-To move this from a blackbox script into more of an actionable product, an audit list was generated and also saved into the /data folder. This .csv contains the plot_id values of false positives for disturbed records that the model was able to identify. 
 ---
 
 ## Tech Stack & Libraries
@@ -185,15 +173,11 @@ To move this from a blackbox script into more of an actionable product, an audit
 | **Give the Model a Sense of Time:** The raw data includes snapshots in time by displaying the field survey year and we know that the raster data came from 2020. This isn't enough for a machine learning model to consider the passage of time in its decision tree. | Calculated an additional column that outputs the number of years on either side of the remote sensing that the field survey was conducted. |
 
 
-* a data dictionary of sorts that simply guides users through the meaning/content of a given table or record would be handy |
-
-* some thoughts on pre-raster tabular data (2015-2019, sweetspot (2020), and post-raster 2021-2022)
-
 ---
 
 ## Data Quality Assurance
 
-While reviewing the intitial output, I noticed a several thousand NULL values in field_ht_ft.  
+While reviewing the intitial SQL output, I noticed a several thousand NULL values in field_ht_ft.  
 
 I thought that perhaps these would be localized to a specific area or 
 maybe belong to a particular species. Even with further investigation, no real pattern stood out. This could simply be representation in the dataset of how difficult
@@ -232,13 +216,8 @@ It was also necessary to give the model a bit of context for the passsage of tim
 3. Room for improvement:
 Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. The model succeeded to a high degree in what it set out to do considering the parameters it was fed. It would be interesting to include some other basics such as elevation and slope to see how they affect the predictions. A true risk factor feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd like to work with spectral signatures someday. It stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. Perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
 
+* a data dictionary of sorts that simply guides users through the meaning/content of a given table or record would be handy |
 
+* some thoughts on pre-raster tabular data (2015-2019, sweetspot (2020), and post-raster 2021-2022)
 
 ---
-
-## 🚀 Getting Started
-
-1. Clone the repo.
-2. Ensure PostGIS is enabled on your local database.
-3. Run `etl_scripts/01_import_species.py` to populate the reference table.
-4. Execute the SQL views found in `sql/v_gold_ml_ready.sql`.
