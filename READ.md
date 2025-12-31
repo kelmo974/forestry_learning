@@ -1,6 +1,6 @@
 # Tennessee Forest Canopy Height: Spatial and Tabular ETL to Feed Machine Learning Model
 
-> **Project Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling. The model, built on XGBoost framework,  aims to identify potential disturbances that could suggest hyper-localized storm damage, undocumented deforestation, or effects of invasive beetle species. 
+> **Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for predictive modeling. The model, built on XGBoost framework,  aims to identify forest that could suggest hyper-localized storm damage, undocumented deforestation, or effects of invasive beetle species. 
 
 ---
 
@@ -187,7 +187,7 @@ This was a critical catch as nearly 8% of all records in the ml_training_data_st
   <img src="project_screenshots/NULL_field_height_issue.png" width="70%" />
 </p>
 
-The greatest roadblock dealt with the fact that the raster canopy height measurement really only measures the peak of that `plot_id`. Feeding ~300k understory trees assigned the same satellite height value would not serve the model well. As such, the SQL logic was revised so that a ranking system was applied to each tree grouped by `plot_id`. This enabled the comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose height measurements are not reflected in the LiDAR data. 
+The greatest roadblock dealt with the fact that the raster canopy height measurement really only measures the peak of that `plot_id`. Feeding ~300k understory trees assigned the same satellite height value would not serve the model well. As such, the SQL logic was revised so that a ranking was applied to each tree grouped by `plot_id`. This enabled the comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose height measurements are not reflected in the LiDAR data. 
 
 To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model is shielded from records with sensor errors or data skewed by environmental factors such as cloud opacity. A separate CASE statement categorizes records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that stored data.
 
@@ -204,19 +204,25 @@ It was also necessary to give the model a bit of context for the passsage of tim
 </p>
 
 ---
-
 ## Conclusion
 
-1. Findings: 
+<p align="left">
+  <h3>1. Findings:</h3>
+</p>
 
-166 false positives generated from the model execution. Precisions of .57, recall .87, f-1 score 0f .69. sat_ht_ft field identified as most important feature to the model.
+166 false positives generated from the model execution.  
+Precision = 57%, Recall = 87%, F-1 score = 79%.  
+`sat_ht_ft` field identified as most important feature to the model.
 
-2. Significance: 
+<p align="left">
+  <h3>2. Significance:</h3>
+</p>
 
-The model succeeded in what it set out to do considering the parameters it was fed. The false positives list found in the audit file provides the forestry team with cause to further investigate those specific areas instead of flying a drone or walking each of the ~2100 plots from the test train data. While some of the records categorized as disturbances will be edge cases outside of the 40 ft variance stipulated by the SQL logic, it's possible that this list captures incidence of hyper localized storms, illegal deforestation, or some unknown pest that toppled trees. 
+The model succeeded in what it set out to do considering the parameters it was fed. The false positives list found in the audit file provides the forestry team with cause to further investigate those specific areas instead of flying a drone or walking each of the ~2100 plots from the test split data. While some of the records categorized as disturbances will be edge cases outside of the 40 ft variance stipulated by the SQL logic, it's possible that this list captures incidence of hyper-localized storms, illegal deforestation, or some unknown pest that toppled trees. 
 
-
-3. Room for improvement: 
+<p align="left">
+  <h3>3. Room for improvement:</h3> 
+</p>
 
 Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
 
