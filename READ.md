@@ -1,18 +1,18 @@
 # Tennessee Forest Canopy Height: Spatial and Tabular ETL to Feed Machine Learning Model
 
-> **Project Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling. We want the model to identify potential beetle killoffs, storm damage, or even illegal deforestation.
+> **Project Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for biomass modeling. The model, built on XGBoost framework,  aims to identify potential disturbances that could suggest hyper-localized storm damage, undocumented deforestation, or effects of invasive beetle species. 
 
 ---
 
 ## Overview
 
-This project addresses the gap between ground-level forestry inventory and satellite canopy height models. By joining thousands of tree measurements captured in the field with spatial rasters, we can build a model to predict forest structure across the state of Tennessee. 
+This project addresses the gap between ground-level forestry inventory and satellite canopy height models. By joining thousands of tree measurements captured in the field with spatial rasters, a reliable model to predict forest structure in Tennessee can be built. 
 
 Tabular data was obtained from the Forest Inventory and Analysis DataMart provided by the U.S. Department of Agriculture. Information regarding the plot of land, condition of the land, and field surveys of trees were of particular interest to this query, so three applicable tables were downloaded from the FIA DataMart. A fourth table, containing the master list of tree species, would later be included from the same source. That raw data can be found here: [FIA DataMart](https://research.fs.usda.gov/products/dataandtools/fia-datamart)
 
 To make a comparison to remote sensing data and demonstrate competency working with raster data, canopy height measurements captured with LiDAR instrumentation at a resolution of 10-m were sourced to then be combined with the tabular data from Tennessee forests. The canopy height data was compiled by EcoVision Lab at the ETH Zurich. The following link offers further details on their research and access to the datasets: [ETH Zurich](https://prs.igp.ethz.ch/research/completed_projects/automated_large-scale_high_carbon_stock.html)
 
-The Data Pipeline & Architecture section found below offers a detailed recount of the steps used to clearn and store raw data, transform it into a model-ready format, design of the machine learning model, and analysis of the model's results. 
+The Data Pipeline & Architecture section found below details the steps used to clearn and store raw data, transform it into a model-ready format, design of the machine learning model, and analysis of the model's results. 
 
 An actionable audit list of `plot_id` values associated with false positives was stored automatically by the script.
 
@@ -120,13 +120,9 @@ An actionable audit list of `plot_id` values associated with false positives was
   </table>
 </p>
 
-<p align="left">
-  <h3>12. XGBoost model initialization and training</h3>
-  <img src="project_screenshots/ML_meat.png" width="70%" />
-</p>
 
 <p align="left">
-  <h3>13. Model run and performance</h3>
+  <h3>12. XGBoost model and performance</h3>
   <table style="width: 100%; border-collapse: collapse;">
     <tr style="border: none;">
       <th style="text-align: center; border: none;">Meat of model</th>
@@ -144,12 +140,12 @@ An actionable audit list of `plot_id` values associated with false positives was
 </p>
 
 <p align="left">
-  <h3>14. Importance of features to the model</h3>
+  <h3>13. Importance of features to the model</h3>
   <img src="project_screenshots/model_results.png" width="70%" />
 </p>
 
 <p align="left">
-  <h3>15. Actionable list of false positives</h3>
+  <h3>14. Actionable list of false positives</h3>
   <img src="project_screenshots/false_positive_audit.png" width="70%" />
 </p>
 
@@ -171,13 +167,14 @@ An actionable audit list of `plot_id` values associated with false positives was
 | **Species Code Meaning:** Attempting to answer questions about the data was complicated by the species codes being only numeric. | Downloaded, cleaned, and integrated the species reference list to the schema. | 
 | **Satellite Canopy Height vs Understory:** I became concered about the 'sat_ht_ft' value being applied to such a wide number of trees in a given plot. Upon investigating, it sounds like a common issue when relying on 10-m LiDAR resolution in forestry research. Telling the ML model that a slew of trees measured at 15 feet in the field produced a satellite height measuremnt of 70 feet is liable to confuse the model as these are more or less false positives. | Made the executive decision to rank tree height within each plot. This shrinks the total record count dramaticallly - from approximately 340k records to just over 10,000. I'd rather feed the model meaningful, high-value data than overwhelm it with noise. | 
 | **Give the Model a Sense of Time:** The raw data includes snapshots in time by displaying the field survey year and we know that the raster data came from 2020. This isn't enough for a machine learning model to consider the passage of time in its decision tree. | Calculated an additional column that outputs the number of years on either side of the remote sensing that the field survey was conducted. |
+| **Recall and Precision Suspiciously High:** Feeding the ml_training_data_dominant table to the model as is resulted in precision and recall metrics 97% and 98%, respectively. This was too good to be true. After looking into this, providing the math of what consitutes "is_disturbed" to the model was essentially providing it a cheat sheet and encouraging it to calculate what was already categorized by the CASE statements. | Modified the model by removing 'field_ht_ft' and 'exlcusion_flag' columns from its training set. Decrease in precision and recall scores show that model is learning from patterns instead of memorizing the categorization of disturbed vs. stable as defined by the SQL logic.| 
 
 
 ---
 
 ## Data Quality Assurance
 
-While reviewing the intitial SQL output, I noticed a several thousand NULL values in field_ht_ft.  
+While reviewing the intitial SQL output, I noticed several thousand NULL values in 'field_ht_ft'.  
 
 I thought that perhaps these would be localized to a specific area or 
 maybe belong to a particular species. Even with further investigation, no real pattern stood out. This could simply be representation in the dataset of how difficult
@@ -190,13 +187,13 @@ This was a critical catch as nearly 8% of all records in the ml_training_data_st
   <img src="project_screenshots/NULL_field_height_issue.png" width="70%" />
 </p>
 
-This analysis encountered a crossroads of sorts when it came time to decide if it would be worth injecting every individual tree surveyed in a given plot or whether to key only on the taller (or tallest) trees that would've been captured in the remote sensing data. The SQL lgoic was revised so that a ranking system was applied to each tree (by plot_id) of the entire cleaned dataset. This enabled me to make a comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose data are not reflected in the LiDAR data. 
+The greatest roadblock dealt with the fact that the raster canopy height measurement really only measures the peak of that `plot_d`. Feeding ~300k understory trees assigned the same satellite height value would not serve the model well. As such, the SQL logic was revised so that a ranking system was applied to each tree grouped by `plot_id`. This enabled the comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose height measurements are not reflected in the LiDAR data. 
 
-To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model only trains on high-integrity data as well as classifiying those records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that logged data.
+To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model is shielded from records with sensor errors or data skewed by environmental factors such as a cloud opacity. A separate CASE statement categorizes records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that stored data.
 
 <p align="left">
-  <h3>Disturbed Count</h3>
-  <img src="project_screenshots/disturbed_count.png" width="70%" />
+  <h3>Supply Only High-Integrity Data</h3>
+  <img src="project_screenshots/CASE_statements.png" width="70%" />
 </p>
 
 It was also necessary to give the model a bit of context for the passsage of time. This could be described as feature engineering in a data science role. The output table does have the survey year included. However, without a calculation of that value with respect to the year in which the raster data was compiled, the model wouldn't know to use time as as part of its prediction. This is a key ingredient to the whole process.
@@ -205,19 +202,30 @@ It was also necessary to give the model a bit of context for the passsage of tim
   <h3>Years Until or Since LiDAR Imaging</h3>
   <img src="project_screenshots/years_from_raster.png" width="70%" />
 </p>
+
 ---
 
 ## Conclusion
 
-1. Findings: Eight false positives generated from the model execution. Precisions of .97, recall .98, f-1 score 0f .98. sat_ht_ft field identified as most important feature to the model
+1. Findings: 166 false positives generated from the model execution. Precisions of .57, recall .87, f-1 score 0f .69. sat_ht_ft field identified as most important feature to the model.
 
-2. Significance: The false positives no placed into a quasi-audit file provide the forestry team with cause to further investigate those specific areas. It's possible that this list captures hyper localized storms, illegal deforestation, or some unknown pest that toppled trees.
+2. Significance: The false positives list found in the audit file provides the forestry team with cause to further investigate those specific areas. It's possible that this list captures hyper localized storms, illegal deforestation, or some unknown pest that toppled trees. 
 
-3. Room for improvement:
-Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. The model succeeded to a high degree in what it set out to do considering the parameters it was fed. It would be interesting to include some other basics such as elevation and slope to see how they affect the predictions. A true risk factor feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd like to work with spectral signatures someday. It stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. Perhaps 7 years of forest growth is considered too much time. Should I have limited the survey history further?
+Edge Cases	The height difference was 38ft (SQL cutoff is 40ft).	Accept it; the model is just being precise.
+Species Noise	"Loblolly Pine" has a jagged canopy that tricks the laser.	ETL Bonus Task: Flag this species for special handling.
+Temporal Noise	years_from_raster is high (e.g., 5 years).	The tree grew or changed naturally over time.
 
-* a data dictionary of sorts that simply guides users through the meaning/content of a given table or record would be handy |
 
-* some thoughts on pre-raster tabular data (2015-2019, sweetspot (2020), and post-raster 2021-2022)
+3. Room for improvement: 
+
+Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
+
+The model succeeded in what it set out to do considering the parameters it was fed. It would be interesting to include other variables such as elevation and slope to see how they affect the prediction. A true species susceptibililty feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd also like to work with spectral signatures someday as it stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. 
+
+Being able to rely on domain knowledge regarding expect forest growth rates would help to potentially narrow the time gap between field data and the raster image. Perhaps the industry would consider 5 years on either side of the 2020 satellite data to be too long. 
+
+Inclusion of a  data dictionary that defines fields, tables, and units so that various users have reference material for all aspects of this project.
+
+
 
 ---

@@ -44,7 +44,8 @@ df['species_target_encoded'] = df['common_name'].map(species_map)
 
 # dropping ID values and columns that would confuse model
 # pointing y at 'is_disturbed'
-X = df.drop(columns=['plot_id', 'is_disturbed', 'survey_year', 'common_name'])
+# X = df.drop(columns=['plot_id', 'is_disturbed', 'survey_year', 'common_name'])
+X = df.drop(columns=['plot_id', 'is_disturbed', 'survey_year', 'field_ht_ft', 'common_name', 'exclusion_flag'])
 y = df['is_disturbed']
 
 # stratify=y ensures the 12% disturbance is equal in both sets
@@ -78,7 +79,9 @@ if not os.path.exists(data_dir):
 
 # key on plot_id index to refer to pre-model df 
 results = X_test.copy()
-results['plot_id'] = df.loc[X_test.index, 'plot_id'] 
+results['plot_id'] = df.loc[X_test.index, 'plot_id']
+results['common_name'] = df.loc[X_test.index, 'common_name']   
+results['field_ht_ft'] = df.loc[X_test.index, 'field_ht_ft']   
 results['actual'] = y_test
 results['predicted'] = y_pred 
 
@@ -87,13 +90,21 @@ df.to_csv(os.path.join(data_dir, 'ml_training_data_dominant_backup.csv'), index=
 
 print(f"Postgres ingestion .csv saved to {data_dir}")
 
-# false positive records into .csv
-false_positives = results[(results['actual'] == 0) & (results['predicted'] == 1)]
-cols = ['plot_id', 'actual', 'predicted'] + [c for c in results.columns if c not in ['plot_id', 'actual', 'predicted']]
-false_positives[cols].to_csv(os.path.join(data_dir, 'false_positives_audit.csv'), index=False)
+# Filter for False Positives (Model predicted 1, but it was actually 0)
+false_positives = results[(results['actual'] == 0) & (results['predicted'] == 1)].copy()
 
-print(f"Audit files exported to {data_dir}")
+# Sort by common_name to group species together
+false_positives = false_positives.sort_values(by='common_name')
 
+# Reorder columns to put identifiers and names at the front
+main_cols = ['plot_id', 'common_name', 'actual', 'predicted', 'field_ht_ft', 'sat_ht_ft']
+other_cols = [c for c in false_positives.columns if c not in main_cols]
+false_positives = false_positives[main_cols + other_cols]
+
+# Export the sorted audit list
+false_positives.to_csv(os.path.join(data_dir, 'false_positives_audit.csv'), index=False)
+
+print(f"Audit files exported to {data_dir} (Sorted by species name)")
 
 # obtaining a report on how well the model's prediction stacks up
 # to the known disturbed or stable records
