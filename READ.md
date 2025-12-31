@@ -60,9 +60,9 @@ An actionable audit list of `plot_id` values associated with false positives was
 
 <p align="left">
   <h3>5. SQLalchemy initializes the engine and loads the dataset</h3>
-  <img src="project_screenshots/sqlAlchemy_engine.png" width="70%" /><br><br>
+  <img src="project_screenshots/sqlAlchemy_engine.png" width="70%" />
   <img src="project_screenshots/tn_tree_proof.png" width="70%" />
-</p>
+</p> 
 
 <p align="left">
   <h3>6. Terminal command used to import all .tif files</h3>
@@ -167,7 +167,7 @@ An actionable audit list of `plot_id` values associated with false positives was
 | **Species Code Meaning:** Attempting to answer questions about the data was complicated by the species codes being only numeric. | Downloaded, cleaned, and integrated the species reference list to the schema. | 
 | **Satellite Canopy Height vs Understory:** I became concered about the 'sat_ht_ft' value being applied to such a wide number of trees in a given plot. Upon investigating, it sounds like a common issue when relying on 10-m LiDAR resolution in forestry research. Telling the ML model that a slew of trees measured at 15 feet in the field produced a satellite height measuremnt of 70 feet is liable to confuse the model as these are more or less false positives. | Made the executive decision to rank tree height within each plot. This shrinks the total record count dramaticallly - from approximately 340k records to just over 10,000. I'd rather feed the model meaningful, high-value data than overwhelm it with noise. | 
 | **Give the Model a Sense of Time:** The raw data includes snapshots in time by displaying the field survey year and we know that the raster data came from 2020. This isn't enough for a machine learning model to consider the passage of time in its decision tree. | Calculated an additional column that outputs the number of years on either side of the remote sensing that the field survey was conducted. |
-| **Recall and Precision Suspiciously High:** Feeding the ml_training_data_dominant table to the model as is resulted in precision and recall metrics 97% and 98%, respectively. This was too good to be true. After looking into this, providing the math of what consitutes "is_disturbed" to the model was essentially providing it a cheat sheet and encouraging it to calculate what was already categorized by the CASE statements. | Modified the model by removing 'field_ht_ft' and 'exlcusion_flag' columns from its training set. Decrease in precision and recall scores show that model is learning from patterns instead of memorizing the categorization of disturbed vs. stable as defined by the SQL logic.| 
+| **Recall and Precision Suspiciously High:** Feeding the ml_training_data_dominant table to the model as is resulted in precision and recall metrics of 97% and 98%, respectively. This was too good to be true. After looking into this, providing the math of what consitutes "is_disturbed" to the model was essentially providing it a cheat sheet and encouraging it to calculate what was already categorized by the CASE statements. | Modified the model by removing 'field_ht_ft' and 'exlcusion_flag' columns from its training set. Decrease in precision and recall scores show that model is learning from patterns instead of memorizing the categorization of disturbed vs. stable as defined by the SQL logic.| 
 
 
 ---
@@ -187,9 +187,9 @@ This was a critical catch as nearly 8% of all records in the ml_training_data_st
   <img src="project_screenshots/NULL_field_height_issue.png" width="70%" />
 </p>
 
-The greatest roadblock dealt with the fact that the raster canopy height measurement really only measures the peak of that `plot_d`. Feeding ~300k understory trees assigned the same satellite height value would not serve the model well. As such, the SQL logic was revised so that a ranking system was applied to each tree grouped by `plot_id`. This enabled the comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose height measurements are not reflected in the LiDAR data. 
+The greatest roadblock dealt with the fact that the raster canopy height measurement really only measures the peak of that `plot_id`. Feeding ~300k understory trees assigned the same satellite height value would not serve the model well. As such, the SQL logic was revised so that a ranking system was applied to each tree grouped by `plot_id`. This enabled the comparison of field to raster data with much more truth while avoiding the noise of several hundred thousand trees whose height measurements are not reflected in the LiDAR data. 
 
-To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model is shielded from records with sensor errors or data skewed by environmental factors such as a cloud opacity. A separate CASE statement categorizes records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that stored data.
+To acheive this, I implemented a quality check, embedded as a CASE statement, that dynamically flags records to ensure the ML model is shielded from records with sensor errors or data skewed by environmental factors such as cloud opacity. A separate CASE statement categorizes records as "stable" or "disturbed". The ranking was handled by moving this logic inside of a CTE then selecting and filtering based on that stored data.
 
 <p align="left">
   <h3>Supply Only High-Integrity Data</h3>
@@ -207,22 +207,24 @@ It was also necessary to give the model a bit of context for the passsage of tim
 
 ## Conclusion
 
-1. Findings: 166 false positives generated from the model execution. Precisions of .57, recall .87, f-1 score 0f .69. sat_ht_ft field identified as most important feature to the model.
+1. Findings: 
 
-2. Significance: The false positives list found in the audit file provides the forestry team with cause to further investigate those specific areas. It's possible that this list captures hyper localized storms, illegal deforestation, or some unknown pest that toppled trees. 
+166 false positives generated from the model execution. Precisions of .57, recall .87, f-1 score 0f .69. sat_ht_ft field identified as most important feature to the model.
 
-Edge Cases	The height difference was 38ft (SQL cutoff is 40ft).	Accept it; the model is just being precise.
-Species Noise	"Loblolly Pine" has a jagged canopy that tricks the laser.	ETL Bonus Task: Flag this species for special handling.
-Temporal Noise	years_from_raster is high (e.g., 5 years).	The tree grew or changed naturally over time.
+2. Significance: 
+
+The model succeeded in what it set out to do considering the parameters it was fed. The false positives list found in the audit file provides the forestry team with cause to further investigate those specific areas instead of flying a drone or walking each of the ~2100 plots from the test train data. While some of the records categorized as disturbances will be edge cases outside of the 40 ft variance stipulated by the SQL logic, it's possible that this list captures incidence of hyper localized storms, illegal deforestation, or some unknown pest that toppled trees. 
 
 
 3. Room for improvement: 
 
 Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
 
-The model succeeded in what it set out to do considering the parameters it was fed. It would be interesting to include other variables such as elevation and slope to see how they affect the prediction. A true species susceptibililty feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd also like to work with spectral signatures someday as it stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. 
+It would be interesting to include other variables such as elevation and slope to see how they affect the prediction. A true species susceptibililty feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd also like to work with spectral signatures someday as it stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. 
 
-Being able to rely on domain knowledge regarding expect forest growth rates would help to potentially narrow the time gap between field data and the raster image. Perhaps the industry would consider 5 years on either side of the 2020 satellite data to be too long. 
+Being able to rely on domain knowledge regarding expected forest growth rates would help to potentially narrow the time gap between field data and the raster image. Perhaps the industry would consider 5 years on either side of the 2020 satellite data to be too long. 
+
+Additional code could be included to illustrate species counts. If the audit log of false positives shows a high incidence of a particular species, it may be worth removing them from the training data as a flagged exclusion. Adding exclusions based on conclusions drawn from the false positives list would improve recall. 
 
 Inclusion of a  data dictionary that defines fields, tables, and units so that various users have reference material for all aspects of this project.
 
