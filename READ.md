@@ -234,8 +234,6 @@ Being able to rely on domain knowledge regarding expected forest growth rates wo
 
 Additional code could be included to illustrate species counts. If the audit log of false positives shows a high incidence of a particular species, it may be worth removing them from the training data as a flagged exclusion. Adding exclusions based on conclusions drawn from the false positives list would improve recall. 
 
-Inclusion of a  data dictionary that defines fields, tables, and other metadata so that other users have reference material for all aspects of this project.
-
 ---
 
 ## Data Dictionary 
