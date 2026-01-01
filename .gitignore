@@ -2,6 +2,7 @@
 .venv/
 # project_screenshots/
 data/
+misc/
 .env
 .DS_Store
 __pycache__/
