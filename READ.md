@@ -1,6 +1,6 @@
-# Tennessee Forest Canopy Height: Spatial and Tabular ETL to Feed Machine Learning Model
+# Tennessee Forest Canopy Height: Leveraging LiDAR and Field Inventory Analysis Data to Detect Canopy Change.
 
-> **Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for predictive modeling. The model, built on XGBoost framework,  aims to identify forest that could suggest hyper-localized storm damage, undocumented deforestation, or effects of invasive beetle species. 
+> **Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for predictive modeling. The model, built on XGBoost framework,  aims to identify forest disturbances that could suggest hyper-localized storm damage, undocumented deforestation, or effects of invasive beetle species. 
 
 ---
 
@@ -167,7 +167,7 @@ An actionable audit list of `plot_id` values associated with false positives was
 | **Species Code Meaning:** Attempting to answer questions about the data was complicated by the species codes being only numeric. | Downloaded, cleaned, and integrated the species reference list to the schema. | 
 | **Satellite Canopy Height vs Understory:** I became concered about the 'sat_ht_ft' value being applied to such a wide number of trees in a given plot. Upon investigating, it sounds like a common issue when relying on 10-m LiDAR resolution in forestry research. Telling the ML model that a slew of trees measured at 15 feet in the field produced a satellite height measuremnt of 70 feet is liable to confuse the model as these are more or less false positives. | Made the executive decision to rank tree height within each plot. This shrinks the total record count dramaticallly - from approximately 340k records to just over 10,000. I'd rather feed the model meaningful, high-value data than overwhelm it with noise. | 
 | **Give the Model a Sense of Time:** The raw data includes snapshots in time by displaying the field survey year and we know that the raster data came from 2020. This isn't enough for a machine learning model to consider the passage of time in its decision tree. | Calculated an additional column that outputs the number of years on either side of the remote sensing that the field survey was conducted. |
-| **Recall and Precision Suspiciously High:** Feeding the ml_training_data_dominant table to the model as is resulted in precision and recall metrics of 97% and 98%, respectively. This was too good to be true. After looking into this, providing the math of what consitutes "is_disturbed" to the model was essentially providing it a cheat sheet and encouraging it to calculate what was already categorized by the CASE statements. | Modified the model by removing 'field_ht_ft' and 'exlcusion_flag' columns from its training set. Decrease in precision and recall scores show that model is learning from patterns instead of memorizing the categorization of disturbed vs. stable as defined by the SQL logic.| 
+| **Recall and Precision Suspiciously High:** Feeding the ml_training_data_dominant table to the model as is resulted in precision and recall metrics of 97% and 98%, respectively. This was too good to be true. After looking into this, providing the math of what constitutes "is_disturbed" to the model was essentially providing it a cheat sheet and encouraging it to calculate what was already categorized by the CASE statements. | Modified the model by removing 'field_ht_ft' and 'exlcusion_flag' columns from its training set. Decrease in precision and recall scores show that model is learning from patterns instead of memorizing the categorization of disturbed vs. stable as defined by the SQL logic.| 
 
 
 ---
@@ -224,15 +224,15 @@ The model succeeded in what it set out to do considering the parameters it was f
   <h3>3. Room for improvement:</h3> 
 </p>
 
-Noticed some common_tree name values with spaces or different joining characters. The species reference listed was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
+Some of the common_name values contain spaces or different joining characters. The species reference list was integrated later in the process and I was sure to format the field names accordingly, but should've reviewed and sychronized the values within as well. 
 
-It would be interesting to include other variables such as elevation and slope to see how they affect the prediction. A true species susceptibililty feature would be very handy to introduce as opposed to the model inferring and assigning that lightly-weighted variable to the model. I'd also like to work with spectral signatures someday as it stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. 
+It would be interesting to include other variables such as elevation and slope to see how they affect the prediction. A true species susceptibililty feature would be very handy to introduce as opposed to the model inferring and assigning a lightly-weighted variable. I'd also like to work with spectral signatures someday as it stands to reason that the color aspect of satellite images could prove to be extremely useful in such analyses. 
 
-Being able to rely on domain knowledge regarding expected forest growth rates would help to potentially narrow the time gap between field data and the raster image. Perhaps the industry would consider 5 years on either side of the 2020 satellite data to be too long. 
+Being able to rely on domain knowledge regarding expected forest growth rates would help to potentially narrow the time gap between field data and the raster image. Perhaps the industry would consider 5 years on either side of the 2020 satellite data to be too much time for the model to parse. 
 
 Additional code could be included to illustrate species counts. If the audit log of false positives shows a high incidence of a particular species, it may be worth removing them from the training data as a flagged exclusion. Adding exclusions based on conclusions drawn from the false positives list would improve recall. 
 
-Inclusion of a  data dictionary that defines fields, tables, and units so that various users have reference material for all aspects of this project.
+Inclusion of a  data dictionary that defines fields, tables, and other metadata so that other users have reference material for all aspects of this project.
 
 
 
