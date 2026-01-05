@@ -1,4 +1,4 @@
-# Tennessee Forest Canopy Height: Leveraging LiDAR and Field Inventory Analysis Data to Predict Disturbance.
+# Tennessee Forest Canopy Height: Leveraging LiDAR and Field Inventory Analysis Data to Predict Disturbance
 
 > **Objective:** Create compatibility between ground survey forest data and satellite canopy height rasters to fuel a robust, ML-ready dataset for predictive modeling. The model, built on XGBoost framework,  aims to identify forest disturbances that could suggest hyper-localized storm damage, undocumented deforestation, or effects of invasive beetle species. 
 
