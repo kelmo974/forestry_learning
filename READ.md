@@ -158,7 +158,7 @@ An actionable audit list of `plot_id` values associated with false positives was
 
 ## Roadblocks & Solutions
 
-| Roadblock | Resolution |
+| Roadblock | Solution |
 | --- | --- |
 | **Case-Sensitivity Errors:** Postgres failed on uppercase CSV headers (e.g., `"CONDID"`). | Developed a dynamic SQL script to batch-rename all columns to lowercase. |
 | **Data Type Mismatches:** Integer columns containing numbers as strings like `"972.0"`. | Casted across datatypes on multiple fields during the ETL process to account for decimals. |
